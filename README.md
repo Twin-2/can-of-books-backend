@@ -20,14 +20,14 @@ Logistical
 4. What is your plan if you start to fall behind? Communicate on where the issues are, and get TA help accordingly.
 Cooperative
 1. Make a list of each parson’s strengths.
-- Matt: debugging. Loggical problem solving.
-- Tray: designing, css. Analysis.
-- David: component structure, passing state and props. Leadership.
+  - Matt: debugging. Loggical problem solving.
+  - Tray: designing, css. Analysis.
+  - David: component structure, passing state and props. Leadership.
 2. How can you best utilize these strengths in the development of your application? We have a very well balanced team.
 3. In what areas do you each want to develop greater strength? 
-- Matt: css
-- Tray: java
-- David: css
+  - Matt: css
+  - Tray: java
+  - David: css
 4. Knowing that every person in your team needs to understand the code, how do you plan to approach the day-to-day development? Follow the trello board. Divide each trello task between the team based on strengths. End of day group code review.
 Conflict Resolution
 1. What will your team do if one person is pulling all the weight while the other person is not contributing? Politely speak up. 
