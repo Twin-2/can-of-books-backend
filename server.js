@@ -22,7 +22,7 @@ david.save();
 
 //auth0 set up
 const client = jwksClient({
-  jwksUri: 'https://dev-3y13wdvq.us.auth0.com/.well-known/jwks.json'
+  jwksUri: 'https://dev-3zy4mv8n.us.auth0.com/.well-known/jwks.json'
 });
 function getKey(header, callback) {
   console.log('tes1')
