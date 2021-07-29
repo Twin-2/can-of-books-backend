@@ -6,18 +6,16 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const jwksClient = require('jwks-rsa');
 const app = express();
-app.use(cors());
 const mongoose = require('mongoose');
 const User = require('./models/User.js');
+const BookSchema = require('./models/BookSchema')
+
+app.use(express.json());
+app.use(cors());
 
 //mongoDB set up
 const mongooseOptions = { useNewUrlParser: true, useUnifiedTopology: true }
-mongoose.connect('mongodb://localhost:27017/new-users-db', mongooseOptions);
-
-//seeded mongo data
-let david = new User({ name: 'David', email: 'thebestdavid@gmail.com', books: [{ name: 'Wheel of Time', author: 'Robert Jordan and Brandon Sanderson', genre: 'fantasy', description: 'An epic adventure in a world on magic and monsters', status: 'owned' }, { name: 'Drive', author: 'Dan Pink', genre: 'self-improvement', description: 'Learn what motivates you and how to leverage that to be your best!', status: 'owned' }, { name: 'Mistborn', author: 'Brandon Sanderson', genre: 'fantasy', description: 'An epic adventure in a world of powerful magic', status: 'owned' }] })
-david.save();
-
+mongoose.connect('mongodb://localhost:27017/books-db-lab13-c', mongooseOptions);
 
 
 //auth0 set up
@@ -25,9 +23,7 @@ const client = jwksClient({
   jwksUri: 'https://dev-3zy4mv8n.us.auth0.com/.well-known/jwks.json'
 });
 function getKey(header, callback) {
-  console.log('tes1')
   client.getSigningKey(header.kid, function (err, key) {
-    console.log(key)
     var signingKey = key.publicKey || key.rsaPublicKey;
     callback(null, signingKey);
   });
@@ -43,17 +39,48 @@ app.get('/auth-test', (req, res) => {
       res.json({ 'token': token })
     }
   });
+  console.log('profile page')
 });
 app.get('/books', handleGetBooks);
+
+app.post('/books', (req, res) => {
+  let bookInfo = req.body.data
+  let email = req.body.email
+  User.findOne({ email: email })
+    .then(user => {
+      let book = new BookSchema(bookInfo);
+      book.save();
+      user.books.push(book)
+      user.save()
+        .then(user => res.json(user.books))
+        .catch(err => console.error(err))
+    })
+  console.log('books page')
+})
 app.use('*', errorHandler);
 
 //route functions
 function handleGetBooks(req, res) {
-  User.find({})
-    .then(users => {
-      console.log(users)
-      res.json(users)
-    })
+  let emails = req.query.user;
+  let username = req.query.name;
+  console.log('email', emails)
+  console.log('name', username)
+  if (!User.find({ 'email': `${emails}` })) {
+    User.find({ 'email': `${emails}` })
+      .then(users => {
+        console.log('users line 74', users)
+        res.json(users)
+      })
+  } else {
+    username = new User({ "name": `${username}`, "email": `${emails}` })
+    username.save();
+    User.find({ 'email': `${emails}` })
+      .then(users => {
+        console.log('users line 82', users)
+        res.json(users)
+      })
+  }
+  console.log('get books')
 }
 function errorHandler(req, res) {
   res.status(404).send('No Such Route')
