@@ -15,7 +15,7 @@ app.use(cors());
 
 //mongoDB set up
 const mongooseOptions = { useNewUrlParser: true, useUnifiedTopology: true }
-mongoose.connect('mongodb://localhost:27017/books-db-lab13-c', mongooseOptions);
+mongoose.connect('mongodb://localhost:27017/books-db-lab13-e', mongooseOptions);
 
 
 //auth0 set up
@@ -30,7 +30,29 @@ function getKey(header, callback) {
 }
 
 //routes
-app.get('/auth-test', (req, res) => {
+app.get('/auth-test', handleGetProfile);
+app.get('/books', handleGetBooks);
+app.post('/books', handleAddBook);
+
+app.delete('/books', async (req, res) => {
+  let id = req.query.id;
+  console.log(id)
+  let email = req.query.email;
+  await User.findOne({ "email": email }, (err, user) => {
+    console.log("line 42", user)
+    const filtered = user.books.filter(book => book.id !== id);
+    user.books = filtered;
+    console.log("filtered array 45", filtered)
+    user.save();
+    res.send(filtered);
+    console.log('end of delete')
+  })
+
+})
+app.use('*', errorHandler);
+
+//route functions
+function handleGetProfile(req, res) {
   const token = req.headers.authorization.split(' ')[1];
   jwt.verify(token, getKey, {}, function (err, user) {
     if (err) {
@@ -40,46 +62,45 @@ app.get('/auth-test', (req, res) => {
     }
   });
   console.log('profile page')
-});
-app.get('/books', handleGetBooks);
-
-app.post('/books', (req, res) => {
+}
+function handleAddBook(req, res) {
+  console.log('addbook')
   let bookInfo = req.body.data
   let email = req.body.email
-  User.findOne({ email: email })
+  User.findOne({ 'email': email })
     .then(user => {
-      let book = new BookSchema(bookInfo);
-      book.save();
-      user.books.push(book)
+      bookInfo.name = new BookSchema(bookInfo);
+      bookInfo.name.save();
+      user.books.push(bookInfo.name)
       user.save()
         .then(user => res.json(user.books))
         .catch(err => console.error(err))
     })
+    .catch(err => console.log(err))
   console.log('books page')
-})
-app.use('*', errorHandler);
-
-//route functions
+}
 function handleGetBooks(req, res) {
   let emails = req.query.user;
   let username = req.query.name;
   console.log('email', emails)
   console.log('name', username)
-  if (!User.find({ 'email': `${emails}` })) {
-    User.find({ 'email': `${emails}` })
-      .then(users => {
-        console.log('users line 74', users)
+  User.find({ 'email': `${emails}` })
+    .then(users => {
+      if (users.length > 0) {
+        console.log('users line 91', users)
         res.json(users)
-      })
-  } else {
-    username = new User({ "name": `${username}`, "email": `${emails}` })
-    username.save();
-    User.find({ 'email': `${emails}` })
-      .then(users => {
-        console.log('users line 82', users)
-        res.json(users)
-      })
-  }
+      } else {
+        username = new User({ "name": `${username}`, "email": `${emails}`, "books": [] })
+        username.save();
+        User.find({ 'email': `${emails}` })
+          .then(users => {
+            console.log('users line 100', users)
+            res.json(users)
+          })
+          .catch(err => console.error(err))
+      }
+    })
+    .catch(err => console.error(err))
   console.log('get books')
 }
 function errorHandler(req, res) {
