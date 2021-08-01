@@ -33,7 +33,6 @@ function getKey(header, callback) {
 app.get('/auth-test', handleGetProfile);
 app.get('/books', handleGetBooks);
 app.post('/books', handleAddBook);
-
 app.delete('/books', async (req, res) => {
   let id = req.query.id;
   console.log(id)
@@ -48,6 +47,26 @@ app.delete('/books', async (req, res) => {
     console.log('end of delete')
   })
 
+})
+app.put('/books', async (req, res) => {
+  console.log('update book')
+  let email = req.body.email;
+  let name = req.body.data.name;
+  let author = req.body.data.author;
+  let genre = req.body.data.genre;
+  let description = req.body.data.description;
+  let status = req.body.data.status;
+  let id = String(req.body.id)
+  await User.findOne({ 'email': email }, (err, user) => {
+    const bookArr = user.books.map((book, idx) => {
+      console.log('id=', typeof (id))
+      console.log('book id=', typeof (book.id))
+      return book.id === id ? book = { name, author, genre, description, status } : book;
+    })
+    user.books = bookArr;
+    user.save();
+    res.send(bookArr);
+  })
 })
 app.use('*', errorHandler);
 
